@@ -1,0 +1,63 @@
+{
+  "name": "salary-negotiation-agent",
+  "expertType": "agent",
+  "version": "1.1.0",
+  "description": "Salary negotiation expert for employees. Turns a raise request into a case the approval chain can actually sign: scene triage, cause matching, three-anchor pay banding (internal band position / sustainable increment / replacement cost derived from market price), a pre-talk line and a post-rejection line as emotional anchors, email and talk tracks with seven rebuttals, structural-benefit fallbacks ranked by payout certainty, and a 30/60/90 follow-up calendar. Every number comes from the user or from a deterministic script; missing evidence is written as pending instead of being invented. It also tells you when not to negotiate.",
+  "author": {
+    "name": "李献杰 Lyon"
+  },
+  "agents": [
+    "./agents/salary-negotiation.md"
+  ],
+  "agentName": "salary-negotiation",
+  "skills": [
+    "./skills/salary-negotiation-skill"
+  ],
+  "displayName": {
+    "en": "Salary Negotiation Advisor",
+    "zh": "加薪谈判顾问"
+  },
+  "displayDescription": {
+    "en": "Turns your raise request into an approvable case: cause matching, three-anchor pricing, email and talk tracks, follow-up calendar.",
+    "zh": "把你的加薪诉求做成可批的谈判包：由头匹配、三档定价、邮件话术、复谈日历，兼顾情绪与关系。"
+  },
+  "profession": {
+    "en": "Compensation Negotiation Consultant",
+    "zh": "薪酬谈判顾问"
+  },
+  "defaultInitPrompt": {
+    "en": "I want to ask for a raise but I don't know how to bring it up. Help me build the case and the scripts.",
+    "zh": "我想跟公司谈涨薪，但不知道从哪开口，帮我把方案和话术准备出来。"
+  },
+  "avatar": "avatars/salary-negotiation.png",
+  "categoryId": "09-OperationsHR",
+  "plugin": "salary-negotiation-agent",
+  "tags": [
+    {
+      "en": "Salary Negotiation",
+      "zh": "加薪谈判"
+    },
+    {
+      "en": "Pay Banding",
+      "zh": "涨幅定价"
+    },
+    {
+      "en": "Compensation Talk",
+      "zh": "薪酬沟通"
+    }
+  ],
+  "quickPrompts": [
+    {
+      "en": "I want to ask for a raise but I don't know how to bring it up. Help me build the case and the scripts.",
+      "zh": "我想跟公司谈涨薪，但不知道从哪开口，帮我把方案和话术准备出来。"
+    },
+    {
+      "en": "I asked for a raise last time and got turned down. How do I open it up again without making it awkward?",
+      "zh": "我上次提加薪被拒了，现在想找机会再谈一次，该怎么开这个口？"
+    },
+    {
+      "en": "I need to know how much to ask for. Work out a range from my pay band and what my role has grown into.",
+      "zh": "我想知道自己该要多少，帮我按带宽和职责变化算一个涨幅区间。"
+    }
+  ]
+}

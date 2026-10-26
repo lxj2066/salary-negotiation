@@ -1,0 +1,18 @@
+{
+  "version": "1.0.0",
+  "note": "断言只增不改口径。要让用例变绿，先改包，不许改断言。脚本级回归另跑 tests/selftest.py。",
+  "cases": [
+    {
+      "name": "本包结构应无 BLOCKER 且不低于 95 分",
+      "kind": "path",
+      "path": "..",
+      "expect": { "kind": "skill", "blocker": 0, "min_score": 95 }
+    },
+    {
+      "name": "空输入应被拒绝而非给分",
+      "kind": "missing",
+      "path": "./__not_exist__",
+      "expect": { "exit": 2 }
+    }
+  ]
+}

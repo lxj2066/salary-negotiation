@@ -7,7 +7,13 @@
 | 包 | 类型 | 版本 | 去向 |
 |---|---|---|---|
 | `salary-negotiation-skill/` | Skill 包 | 1.1.0 | SkillHub 技能入口 |
-| `dist/salary-negotiation-skill-v1.1.0.zip` | 可分发 | — | 直接上传 |
+| `salary-negotiation-agent/` | Agent 包（内嵌上者） | 1.1.0 | WorkBuddy 专家入口 |
+| `dist/salary-negotiation-skill-v1.1.0.zip` | 可分发 | — | 上传 SkillHub |
+| `dist/salary-negotiation-agent-v1.1.0.zip` | 可分发 | — | 上传 WorkBuddy 专家 |
+
+**两者区别**：Skill 包是能力层，被任意 Agent 调用；Agent 包是人设层，用户直接和它对话。Agent 包内嵌同一份技能，不重复维护细则。
+
+**传错入口会报错**：技能包只传 SkillHub（无 `plugin.json`）；专家包只传 WorkBuddy 专家入口（含 `plugin.json`）。
 
 ---
 
@@ -94,14 +100,39 @@ python salary-negotiation-skill/tests/selftest.py
 
 ---
 
+## 专家包：可以直接对话的版本
+
+`salary-negotiation-agent/` 把同一份技能包成一个人设，用户不用懂七件套，直接说「我想跟公司谈涨薪，不知道从哪开口」就行。
+
+```
+salary-negotiation-agent/
+├── .codebuddy-plugin/plugin.json    专家配置（14 个必填字段）
+├── agents/salary-negotiation.md     人设：五阶段工作流 + 七件套 + 红线 + 降级 + 自检
+├── avatars/salary-negotiation.png   512×512 头像
+├── skills/salary-negotiation-skill/ 内嵌技能（与上方同版）
+└── build/make_avatar.py             头像生成脚本，纯标准库手写 PNG，可复现
+```
+
+三个入口对应三种最常卡住的时刻：
+
+1. **不知道怎么开口**：「我想跟公司谈涨薪，但不知道从哪开口，帮我把方案和话术准备出来。」
+2. **被拒过，想再谈一次**：「我上次提加薪被拒了，现在想找机会再谈一次，该怎么开这个口？」
+3. **不知道该要多少**：「我想知道自己该要多少，帮我按带宽和职责变化算一个涨幅区间。」
+
+头像设计：三根递增柱对应三档锚（底线蓝灰 / 目标金 / 开口红，涨为红），一条上升折线带箭头。
+
+---
+
 ## 校验结果
 
 | 项 | 结果 |
 |---|---|
-| `forge check --strict` | A / 100，BLOCKER 0 / MAJOR 0 / MINOR 0 / INFO 0 |
+| 技能包 `forge check --strict` | A / 100，BLOCKER 0 / MAJOR 0 / MINOR 0 / INFO 0 |
+| 专家包 `forge check --strict` | A / 100，BLOCKER 0，内嵌技能 A/100 |
 | `forge test` | 2 / 2 通过 |
 | `tests/selftest.py` | 49 / 49 通过 |
-| `forge pack` 五层探针 | PASS，15 项检查全过 |
+| 技能包 `pack` 五层探针 | PASS，15 项 |
+| 专家包 `pack` 五层探针 | PASS，17 项 |
 
 ---
 
