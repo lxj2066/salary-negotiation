@@ -2,12 +2,12 @@
 
 把「我想涨薪」变成「这件事按公司逻辑应该批，批多少、凭什么、退到哪」。
 
-本仓库是一份「加薪申请 Agent」System Prompt 的**审计重铸版**：保留原版由头分类与护栏，补上它缺的定价算法、取证方法、退路设计。
+本仓库是一份「加薪申请 Agent」System Prompt 的**审计重铸版**：保留原版由头分类与护栏，补上它缺的定价算法、取证方法、退路设计，以及一个原版完全没有的维度——情感线。
 
 | 包 | 类型 | 版本 | 去向 |
 |---|---|---|---|
-| `salary-negotiation-skill/` | Skill 包 | 1.0.0 | SkillHub 技能入口 |
-| `dist/salary-negotiation-skill-v1.0.0.zip` | 可分发 | — | 直接上传 |
+| `salary-negotiation-skill/` | Skill 包 | 1.1.0 | SkillHub 技能入口 |
+| `dist/salary-negotiation-skill-v1.1.0.zip` | 可分发 | — | 直接上传 |
 
 ---
 
@@ -31,7 +31,29 @@
 | 年龄、婚育、家庭负担影响策略但没隔离规则 | 敏感变量只进内部判断，永不进对外文本 |
 | 国企只说「难」，没给路径优先级 | 职级晋升 > 专项奖励 > 岗位津贴 > 底薪调整 |
 
-完整审计报告见 [`salary-negotiation-skill/references/audit-report.md`](salary-negotiation-skill/references/audit-report.md)，14 项按 P0/P1/P2 分级。
+完整审计报告见 [`salary-negotiation-skill/references/audit-report.md`](salary-negotiation-skill/references/audit-report.md)，初版 14 项 + 二轮复审 6 项，按 P0/P1/P2 分级。
+
+---
+
+## 二轮复审：我自己的三个错误
+
+初版发布后重新审了一遍「逻辑是否自洽」。查出三个公式错——都是**我自己引入的**，不是原提示词的。
+
+| 错在哪 | 初版公式 | 为什么错 | 改成 |
+|---|---|---|---|
+| **锚 C 是伪锚** | `Target = 现有 × 1.3125` | 不含任何个体信息，不管你是谁都是 +31%。用你的薪资算你的替换成本，再用替换成本反推你的薪资——转一圈什么都没增加 | 由**外部市场价**推替换成本：`市场月薪×12×1.2 + 市场月薪×上手折损`，再倒推。没有市场价就不算 |
+| **开口锚不受约束** | `Ask = Target × 1.18` | 实测报出 30100，而带宽上限是 28000。在体系内报超上限的数，对方读到的不是「有底气」，是「不懂定价」 | `Ask = min(Target×mult, 带宽上限)`，超出部分转结构收益 |
+| **底线锚被抬成第二目标** | `Walk ≥ 带宽中位` | 现薪 20000、中位 22000 时，底线被设成 22000——等于要求涨 10%。这不是底线，是第二个目标，谈判空间从 5500 压到 3500 | `≥ 现有×1.03 且 ≤ 目标×0.85`，中位降为参考落点 |
+
+三条的共同毛病：**写下来很顺，一验算就露馅。** 这也是为什么定价必须交脚本——模型自己算，永远发现不了自己的公式错。
+
+### 还有一处漏掉的维度：情感
+
+初版全是判据、红线、脚本、算法，像一个咨询顾问在给方案。但用户来问加薪时，往往憋了很久、刚被拒、或者单纯觉得「谈钱很难为情」。
+
+1.1.0 补了 `references/emotional-line.md`，并把六件套改成**七件套**：新增「谈前一句」，第 7 项内含「被拒后第一句」。两句都是 ≤30 字、能背下来的话。
+
+设计原则一条：**情感线不是安慰，是技术动作。** 谈前一句降低紧张导致的表达失误，被拒后第一句保住下一次入场券。「相信自己」「加油」被写进预检的禁用清单——它们不是话，是噪音。
 
 ---
 
@@ -41,27 +63,31 @@
 # 三锚定价：给出开口锚 / 目标锚 / 底线锚
 python salary-negotiation-skill/scripts/salary_calc.py \
   --current 20000 --scene role --firm private \
-  --band-min 15000 --band-mid 22000 --band-max 28000 --increment 600000
+  --band-min 15000 --band-mid 22000 --band-max 28000 \
+  --increment 600000 --market 24000
 ```
 
 ```
-开口锚 Ask    30,100 元   ← 第一次报这个数
-目标锚 Target 25,500 元   ← 心里真实目标，不主动说
-底线锚 Walk   22,000 元   ← 低于此值改谈结构收益
+开口锚 Ask    28,000 元   ← 第一次报这个数（已压回带宽上限）
+目标锚 Target 25,000 元   ← 心里真实目标，不主动说
+底线锚 Walk   21,200 元   ← 低于此值改谈结构收益
 
-目标涨幅      27.5%   该由头经验区间 10%—25%
-结构收益缺口  3,500 元/月（42,000 元/年）
+目标涨幅      25.0%   该由头经验区间 10%—25%
+结构收益缺口  3,800 元/月（45,600 元/年）
+流程提示      超出直属主管授权，需往上走；材料备成一页可转发版
 ```
+
+三锚各有前提，缺了就不参与，不硬凑：锚 A 要带宽三项，锚 B 要**可持续**增量（一次性的走奖金），锚 C 要**外部市场价**。
 
 ```bash
-# 交付前预检：拦五类硬伤
-python salary-negotiation-skill/scripts/preflight.py --file out.md --facts 20000,25000
+# 交付前预检：拦六类硬伤
+python salary-negotiation-skill/scripts/preflight.py --file out.md --facts 20000,25000,24000
 ```
 
 ```bash
 # 脚本级回归
 python salary-negotiation-skill/tests/selftest.py
-# PASS 28 / FAIL 0
+# PASS 49 / FAIL 0
 ```
 
 三个脚本只用标准库，不联网，同输入同输出。
@@ -74,7 +100,7 @@ python salary-negotiation-skill/tests/selftest.py
 |---|---|
 | `forge check --strict` | A / 100，BLOCKER 0 / MAJOR 0 / MINOR 0 / INFO 0 |
 | `forge test` | 2 / 2 通过 |
-| `tests/selftest.py` | 28 / 28 通过 |
+| `tests/selftest.py` | 49 / 49 通过 |
 | `forge pack` 五层探针 | PASS，15 项检查全过 |
 
 ---
